@@ -26,7 +26,7 @@ import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
-import com.google.mlkit.vision.text.TextRecognizerOptions;
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
 @ReactModule(name = TextRecognitionModule.NAME)
 public class TextRecognitionModule extends ReactContextBaseJavaModule {
@@ -44,7 +44,6 @@ public class TextRecognitionModule extends ReactContextBaseJavaModule {
     return NAME;
   }
 
-
   @ReactMethod
   public void recognize(String imgPath, @Nullable final ReadableMap options, Promise promise) {
     Log.v(getName(), "image path: " + imgPath);
@@ -53,13 +52,12 @@ public class TextRecognitionModule extends ReactContextBaseJavaModule {
       final Bitmap bitmap = getBitmap(imgPath);
 
       if (bitmap != null) {
-        TextRecognizer recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
+        TextRecognizer recognizer = TextRecognition.getClient(new TextRecognizerOptions.Builder().build());
 
         int rotationDegree = 0;
         InputImage image = InputImage.fromBitmap(bitmap, rotationDegree);
 
-        Task<Text> result =
-          recognizer.process(image)
+        Task<Text> result = recognizer.process(image)
             .addOnSuccessListener(new OnSuccessListener<Text>() {
               @Override
               public void onSuccess(Text visionText) {
@@ -74,18 +72,17 @@ public class TextRecognitionModule extends ReactContextBaseJavaModule {
               }
             })
             .addOnFailureListener(
-              new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                  Log.w(getName(), e);
-                  promise.reject("something went wrong", e.getMessage());
-                }
-              });
+                new OnFailureListener() {
+                  @Override
+                  public void onFailure(@NonNull Exception e) {
+                    Log.w(getName(), e);
+                    promise.reject("something went wrong", e.getMessage());
+                  }
+                });
       } else {
         throw new IOException("Could not decode a file path into a bitmap.");
       }
-    }
-    catch(Exception e) {
+    } catch (Exception e) {
       Log.w(getName(), e.toString(), e);
       promise.reject("something went wrong", e.getMessage());
     }
